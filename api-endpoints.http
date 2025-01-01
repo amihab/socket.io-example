@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:3001
+@contentType = application/json
+@accountId = 1
+@jobName = "job1"
+@jobStatus = "success"
+
+### addMessage
+GET {{baseUrl}}/message/{{accountId}}/{{jobName}}/{{jobStatus}}
+content-type: {{contentType}}
+
+
+### get all messages
+GET {{baseUrl}}/history/{{accountId}}
+content-type: {{contentType}}
