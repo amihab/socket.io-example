@@ -1,0 +1,22 @@
+.td {
+    border: 1px solid black;
+}
+
+.tbl {
+    width: 50%;
+    margin-top: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+.tdHead {
+    border: 1px solid black;
+    background-color: lightgray;
+}
+
+.tblHead {
+    border: 1px solid black;
+    background-color: lightskyblue;
+    color: black;
+    padding: 5px;
+}

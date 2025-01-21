@@ -1,14 +1,26 @@
 @baseUrl = http://localhost:3001
 @contentType = application/json
-@accountId = 1
-@jobName = "job1"
-@jobStatus = "success"
+@room = 1
+@Name = John Doe
+@Age = 25
+@Address = 123 Main St
+@City = New York
+@zipCode = 10001
+@status = married
 
-### addMessage
-GET {{baseUrl}}/message/{{accountId}}/{{jobName}}/{{jobStatus}}
+### post message
+POST {{baseUrl}}/message/{{room}}
 content-type: {{contentType}}
 
+{
+    "name": "{{Name}}",
+    "age": "{{Age}}",
+    "address": "{{Address}}",
+    "city": "{{City}}",
+    "zipCode": "{{zipCode}}",
+    "status": "{{status}}"
+}
 
 ### get all messages
-GET {{baseUrl}}/history/{{accountId}}
+GET {{baseUrl}}/history/{{room}}
 content-type: {{contentType}}

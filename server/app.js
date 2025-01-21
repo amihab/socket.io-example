@@ -3,41 +3,86 @@ const express = require("express");
 const app = express();
 const http = require("http");
 
-// the count state
-let history = [
-  { name: "env-restart", status: "running" },
-  { name: "env-duplicate", status: "failed" },
-  { name: "env-delete", status: "success" },
-];
-
 io.on("connect", (socket) => {
-  console.log(`User Connected: ${socket.id}`);
+  console.log(`Client: ${socket.id}, connected`);
 
-  socket.on("join_room", (data) => {
-    console.log("join_room: ", data);
-    socket.join(data);
+  /**
+   * Event listener for 'join' event.
+   * Join room will be triggered mostly from UI client, but can be triggered from server as well.
+   * @param {Object} data - The data sent with the 'join' event.
+   */
+  socket.on("join", (data) => {
+    const { room } = data;
+    socket.join(room);
+    console.log(`Client: ${socket.id} joined room: ${room}`);
   });
 
-  app.get("/history/:accountId", (req, res) => {
-    const accountId = req.params.accountId;
-    socket.join(accountId);
-    history.forEach((m) => {
-      const msg = { name: m.name, status: m.status };
-      io.to(accountId).emit("message", msg);
-    });
-    res.status(200).send({ accountId, topic: "history" });
+  /**
+   * Event listener for 'leave' event.
+   * @param {Object|string} room - The room that the client is leaving.
+   */
+  socket.on("leave", (room) => {
+    console.log(`Client ${socket.id}, left room: ${room}`);
   });
 
-  app.get("/message/:accountId/:jobName/:jobStatus", (req, res) => {
-    const accountId = req.params.accountId;
-    const jobName = req.params.jobName;
-    const jobStatus = req.params.jobStatus;
-    const msg = { name: jobName, status: jobStatus };
-
-    socket.join(accountId);
-    io.to(accountId).emit("message", msg);
-    res.status(200).send({ accountId, jobName, jobStatus, topic: "add" });
+  /**
+   * Event listener for 'disconnect' event.
+   * @param {Object} reason - The reason for the disconnect.
+   */
+  socket.on("disconnect", (reason) => {
+    console.log(`Client: ${socket.id} is disconnected, reason: ${reason}`);
   });
+
+  /**
+   * Event listener for 'disconnecting' event.
+   * @param {Object} reason - The reason for the disconnect.
+   */
+  socket.on("disconnecting", (reason) => {
+    const rooms = Array.from(socket.rooms).filter((room) => room !== socket.id);
+    console.log(`Client: ${socket.id}, disconnecting from rooms: ${rooms}`);
+    console.log(`Reason: ${reason}`);
+  });
+
+  /**
+   * Event listener for 'connect_error' event.
+   * @param {Object} reason - The reason for the connection error.
+   */
+  socket.on("connect_error", (reason) => {
+    console.log(`Connection error, ${reason}`);
+  });
+
+  /**
+   * Event listener for 'connect_failed' event.
+   * @param {Object} reason - The reason for the connection failure.
+   */
+  socket.on("connect_failed", (data) => {
+    console.log(`Connection failed, ${data}`);
+  });
+});
+
+// App setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// App routes
+app.get("/health", (req, res) => {
+  res.send({ status: "healthy" });
+});
+
+app.post("/message/:room", (req, res) => {
+  const room = req.params.room;
+  const message = {
+    name: req.body.name,
+    age: req.body.age,
+    address: req.body.address,
+    city: req.body.city,
+    zipCode: req.body.zipCode,
+    status: req.body.status,
+  };
+
+  // socket.join(room);
+  io.to(room).emit("message", message);
+  res.status(200).send({ status: "sent", message });
 });
 
 const server = http.createServer(app);
