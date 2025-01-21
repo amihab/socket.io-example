@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const http = require("http");
 
+// Socket IO event listeners
 io.on("connect", (socket) => {
   console.log(`Client: ${socket.id}, connected`);
 
@@ -48,27 +49,28 @@ io.on("connect", (socket) => {
    * @param {Object} reason - The reason for the connection error.
    */
   socket.on("connect_error", (reason) => {
-    console.log(`Connection error, ${reason}`);
+    console.log(`Client: ${socket.id} connection error, reason: ${reason}`);
   });
 
   /**
    * Event listener for 'connect_failed' event.
    * @param {Object} reason - The reason for the connection failure.
    */
-  socket.on("connect_failed", (data) => {
-    console.log(`Connection failed, ${data}`);
+  socket.on("connect_failed", (reason) => {
+    console.log(`Client: ${socket.id} connection failed, reason: ${reason}`);
   });
 });
 
-// App setup
+// App middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// App routes
+// Health check Route
 app.get("/health", (req, res) => {
   res.send({ status: "healthy" });
 });
 
+// Message to Socket IO Route
 app.post("/message/:room", (req, res) => {
   const room = req.params.room;
   const message = {
@@ -80,12 +82,13 @@ app.post("/message/:room", (req, res) => {
     status: req.body.status,
   };
 
-  // socket.join(room);
+  // Emit message to the room
   io.to(room).emit("message", message);
   res.status(200).send({ status: "sent", message });
 });
 
+// initialize the express server
 const server = http.createServer(app);
 server.listen(3001, () => {
-  console.log("SERVER IS RUNNING");
+  console.log("SERVER IS RUNNING, PORT: 3001");
 });
